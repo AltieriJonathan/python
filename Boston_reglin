@@ -1,0 +1,109 @@
+import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+%matplotlib inline
+
+# Chargement
+from sklearn.datasets import load_boston 
+df= load_boston()
+df
+
+# Afficher le nom des caractéristiques
+df.feature_names
+
+# Afficher les valeurs cible
+targett= df.target
+targett
+
+# Transformer les données en DataFrame
+dt = pd.DataFrame(df.data, columns=df.feature_names)
+# Afficher les 5 premières lignes
+dt['Target']= targett
+dt.head()
+
+# Créer une nouvelle colonne qui est Valeur en utilisant les valeurs cible du jeu de données
+dt.isnull().sum()[dt.isnull().sum()>0]
+# Verifier qu'il n'y a pas de valeurs nulles
+
+dt.corr()
+
+# Matrice de correlation
+dt.corr()['Target'].sort_values()
+
+# Heatmap
+matrice_corr= dt.corr().round(1)
+sns.heatmap(matrice_corr )
+
+
+# Selectionner les variables les plus explicatives (coefficient >=0.5)
+exvars= ['RM','TAX','PTRATIO','LSTAT']
+
+# Nuages de points multiple avec Seaborn
+dt.set_index('Target')
+sns.pairplot(dt, x_vars=exvars ,y_vars=['Target'], kind='reg')
+
+dt.columns
+
+# Decouper le jeu de données en données d'entrainement et de test
+caract = ['RM','TAX','PTRATIO','LSTAT']
+X = dt[caract]
+y = dt.Target
+
+# Entrainement du modèle de regression linéaire
+from sklearn import metrics
+from sklearn.linear_model import LinearRegression
+linreg = LinearRegression()
+linreg.fit(X, y)
+for line in zip(caract,linreg.coef_):
+    print(line)
+print(linreg.intercept_)
+print(linreg.coef_)
+
+# Afficher les coefficients et le coefficient de correlation r² obtenus
+print(dt[['RM','INDUS']].corr())
+print(dt[['RM','PTRATIO']].corr())
+print(dt[['RM','LSTAT']].corr())
+print(dt[['INDUS','PTRATIO']].corr())
+print(dt[['INDUS','LSTAT']].corr())
+print(dt[['LSTAT','PTRATIO']].corr())
+
+from scipy import stats
+pearson_coef, p_value = stats.pearsonr(dt['RM'], dt['Target'])
+print("Coefficient de correlation :", pearson_coef, " avec P-value =", p_value)
+pearson_coef, p_value = stats.pearsonr(dt['TAX'], dt['Target'])
+print("Coefficient de correlation :", pearson_coef, " avec P-value =", p_value)
+pearson_coef, p_value = stats.pearsonr(dt['PTRATIO'], dt['Target'])
+print("Coefficient de correlation :", pearson_coef, " avec P-value =", p_value)
+pearson_coef, p_value = stats.pearsonr(dt['LSTAT'], dt['Target'])
+print("Coefficient de correlation :", pearson_coef, " avec P-value =", p_value)
+
+from sklearn.metrics import mean_squared_error
+lm = LinearRegression()
+Z =dt[['RM','PTRATIO','LSTAT']]
+lm.fit(Z, dt['Target'])
+# R^2
+print('Le R-square est: ', lm.score(Z, dt['Target']))
+
+# Evaluation du training set
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+import numpy as np
+
+def train_test_rmse(caract):
+    X = dt[caract]
+    y = dt.Target
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=123)
+    linreg = LinearRegression()
+    linreg.fit(X_train, y_train)
+    y_pred = linreg.predict(X_test)
+    return np.sqrt(metrics.mean_squared_error(y_test, y_pred))
+
+
+train_test_rmse(caract)
+
+
+
