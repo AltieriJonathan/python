@@ -1,0 +1,61 @@
+#import des modules
+
+import requests
+from bs4 import BeautifulSoup
+
+#téléchargement de la page
+page=requests.get('https://www.lachainemeteo.com/meteo-france/ville-963/previsions-meteo-montpellier-aujourdhui')
+calendriermeteo= 'https://www.lachainemeteo.com/meteo-france/ville-963/previsions-meteo-montpellier-'
+jours=['demain','samedi','dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi-prochain','dimanche-prochain','lundi-prochain','mardi-prochain','mercredi-prochain','jeudi-prochain','vendredi-prochain']
+for [jours] in calendriermeteo:
+    calendriermeteo+=jours
+#vérification du bon déroulé du téléchargement
+
+if page.status_code != 200:
+    print("Error fetching page")
+    exit()
+else:
+
+# si tout se passe bien, on parse la page html
+
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    # titre de la page avec les balises html
+print(soup.title)
+    
+
+    # titre de la page sans les balises html
+print(soup.title.string)
+
+    # premier lien de type a dans la page
+first_link = soup.a
+
+    #premier élément ayant la class "cell" dans la page
+print(soup.find(class_="cell"))
+
+    #tous les éléments ayant la class "cell"
+
+print(soup.find_all(class_="cell"))
+
+#ouverture d'un fichier texte en écriture
+f= open("tempMtp.txt", "w")
+
+#tableau qui enregistrera les données
+
+tab=[]
+    #les 3 températures de la journée
+temp=soup.select("div.data > div:nth-of-type(3) > div.cell")
+
+#parcour de chaque élement du tableau temp
+for child in temp:
+    print(child.contents[1].string)
+
+#ajout dans le tableau de sauvegarde
+
+tab.append(child.contents[1].string)
+#écriture du contenu du tableau de sauvegarde dans le fichier texte
+f.write(";".join(tab))
+
+#fermeture du fichier texte
+print(soup.find(class_="textatorDay").strings)
+f.close()
