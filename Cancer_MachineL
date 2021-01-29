@@ -1,0 +1,126 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+from scipy import stats
+from sklearn.metrics import mean_squared_error
+from sklearn.datasets import make_blobs
+from sklearn import preprocessing
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn import neighbors
+from sklearn.preprocessing import MinMaxScaler
+%matplotlib inline
+
+df= pd.read_csv('cancer.csv', index_col=0,sep=';')
+df
+
+from sklearn.model_selection import train_test_split
+X = df.iloc[:,:-1]
+y = df['classe']
+X_train, X_test, y_train, y_test= train_test_split(X,y, test_size=0.25,random_state=1,stratify=y)
+
+from sklearn.tree import DecisionTreeClassifier
+arbre= DecisionTreeClassifier(min_samples_split=30,min_samples_leaf=10,max_leaf_nodes=3)
+arbre.fit(X_train,y_train)
+
+from sklearn import tree
+tree.plot_tree(arbre,feature_names = list(df.columns[:-1]),filled=True, fontsize=8)
+plt.show
+
+impVarFirst={"Variable":df.columns[:-1],"Importance":arbre.feature_importances_}
+print(pd.DataFrame(impVarFirst).sort_values(by="Importance",ascending=False))
+
+#prédiction sur l'échantillon test
+pred= arbre.predict(X_test)
+#matrice de confusion
+from sklearn import metrics
+print(metrics.confusion_matrix(y_test,pred))
+
+print(metrics.classification_report(y_test,pred))
+
+from sklearn.tree import DecisionTreeClassifier as dt
+from sklearn.linear_model import LogisticRegression as lr
+from sklearn.neighbors import KNeighborsClassifier as knn
+
+X_train,X_test, y_train,y_test= train_test_split(X,y, test_size=0.3,random_state=42)
+
+model_1 = dt(random_state=42)
+model_2= knn(n_neighbors = 2)
+model_3 = lr()
+
+for model in(model_1, model_2, model_3) : 
+    model.fit(X_train, y_train)
+    print(model.__class__.__name__, model.score(X_test, y_test))
+from sklearn.ensemble import VotingClassifier
+
+model_4 = VotingClassifier([('DTree', model_1),
+                             ('LogReg', model_3),
+                             ('KNN', model_2)],
+                           voting = 'soft')
+model_4.fit(X_train, y_train)
+print(model_4.__class__.__name__, model.score(X_test, y_test))
+
+from sklearn.ensemble import BaggingClassifier as bg, RandomForestClassifier as rf
+
+model_5 = bg(random_state=42,base_estimator= knn(), n_estimators=100)#100knn differents
+model_5.fit(X_train, y_train)
+model_5.score(X_test, y_test)
+
+model_6 = rf(n_estimators=100)
+model_6.fit(X_train, y_train)
+model_6.score(X_test, y_test)
+
+model_7 = Ada(n_estimators = 100)
+model_7.fit(X_train, y_train)
+model_7.score(X_test, y_test)
+
+model_8 = GB(n_estimators = 100)
+model_8.fit(X_train, y_train)
+model_8.score(X_test, y_test)
+
+from sklearn.ensemble import StackingClassifier as ST
+
+model_9 = ST([('DTree', model_1),
+              ('LogReg', model_3),
+              ('KNN', model_2)],
+            final_estimator = knn())
+model_9.fit(X_train, y_train)
+model_9.score(X_test, y_test)
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeClassifier as dt
+dt = DecisionTreeClassifier()
+t_range = range(2, 30)
+mssplit= range(2,20)
+msleaf= range(1,8)
+param_grid = {'criterion' :('gini','entropy') ,'splitter':('best','random'),'max_depth':t_range,'min_samples_split':mssplit,'min_samples_leaf':msleaf,'max_features':['auto', 'sqrt', 'log2']}
+grid = GridSearchCV(dt, param_grid, cv=5, scoring='accuracy')
+grid.fit(X_train, y_train)
+
+grid.best_estimator_
+
+grid.best_score_
+
+grid.best_params_
+
+from sklearn.model_selection import GridSearchCV
+param_grid = {'random_state': range(20,80)}
+grid = GridSearchCV(model_8, param_grid, cv=10, scoring='accuracy')
+
+grid.fit(X,y)
+
+grid.best_estimator_
+
+
+
+
+
+    
