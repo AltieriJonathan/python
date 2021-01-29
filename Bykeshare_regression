@@ -1,0 +1,62 @@
+# importer les données dans un dataframe en indexant par la date
+import pandas as pd
+url = 'https://raw.githubusercontent.com/justmarkham/DAT8/master/data/bikeshare.csv'
+bikeshare = pd.read_csv(url, index_col='datetime', parse_dates=True)
+
+bikeshare.head(20)
+bikeshare.rename(columns={'count':'total'}, inplace=True)
+
+import matplotlib.pyplot as plt
+%matplotlib inline
+plt.rcParams['figure.figsize'] = (8, 6)
+plt.rcParams['font.size'] = 14
+
+bikeshare.plot(kind='scatter', x='temp', y='total', alpha=0.2)
+
+import seaborn as sns
+sns.lmplot(x='temp', y='total', data=bikeshare, aspect=1.5, scatter_kws={'alpha':0.2})
+
+caract = ['temp']
+X = bikeshare[caract]
+y = bikeshare.total
+
+from sklearn.linear_model import LinearRegression
+linreg = LinearRegression()
+linreg.fit(X, y)
+
+print(linreg.intercept_)
+print(linreg.coef_)
+
+linreg.intercept_ + linreg.coef_*25
+
+linreg.predict([[25]])
+
+bikeshare['temp_F'] = bikeshare.temp * 1.8 + 32
+bikeshare.head()
+
+# Afficher le nuage de points avec  Seaborn y en fonction de temp_F
+sns.lmplot(x='temp_F', y='total', data=bikeshare, aspect=1.5, scatter_kws={'alpha':0.2})
+
+# creation de la matrice X et du vecteur y
+caract = ['temp_F']
+X = bikeshare[caract]
+y = bikeshare.total
+
+# instantiation et application
+linreg = LinearRegression()
+linreg.fit(X, y)
+
+# affichage des coefficients
+print(linreg.intercept_
+print(linreg.coef_
+
+# conversion de 25 degrés Celsius en Fahrenheit
+25 * 1.8 + 32
+
+# prediction des locations pour 77 degrés Fahrenheit
+linreg.predict([[77]])
+
+# Supprimer la colonne temp_F
+bikeshare.drop('temp_F', axis=1, inplace=True)
+
+
