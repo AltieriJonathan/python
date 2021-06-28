@@ -1,0 +1,82 @@
+import numpy as np
+from PIL import Image
+import os
+import tensorflow
+from tensorflow import keras
+from os import path
+from keras.utils import np_utils
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten , Conv2D
+from tensorflow.keras import layers
+from sklearn.model_selection import train_test_split
+
+Train_dir="Covid19/train"
+test_dir="Covid19/test"
+
+def load_img(dir):
+    img_list = []
+    class_counter = 0
+    class_list = []
+    for i in os.listdir(dir):
+        if (path.isdir(path.join(dir, i))):
+            for j in os.listdir(path.join(dir, i)):
+                if (j.endswith('.jpeg')):
+                    class_list.append(class_counter)
+                    img_list.append(np.array(Image.open(os.path.join(os.path.join(dir, i), j)).resize((64, 64))))
+            class_counter += 1
+    return np.array(img_list), np.array(class_list)
+
+X_train_full,y_train_full=load_img(Train_dir)
+(X_test,y_test) = load_img(test_dir)
+print(X_train_full.shape)
+print(X_test.shape)
+print(y_test.shape)
+
+#PRE-TRAITEMENT:
+# Normalisation de l'input
+X_train_full= X_train_full.astype('float32')
+X_test_full= X_test.astype('float32')
+X_train_full= X_train_full/ 255.0
+X_test_full= X_test/ 255.0
+
+#output
+y_train_full= np_utils.to_categorical(y_train_full)
+y_test_full= np_utils.to_categorical(y_test)
+
+X_train, X_val, y_train, y_val = train_test_split(X_train_full,
+                                                  y_train_full,
+                                                  test_size=0.25,
+                                                  random_state=42,
+                                                  stratify=y_train_full)
+#Création d'un modele Sequentiel
+
+
+models = keras.Sequential()
+
+models.add(layers.Conv2D(64,(3,3) ,input_shape=(64,64,3), padding='same',activation="selu"))
+models.add(layers.Conv2D(128,(5,5),padding="same",activation="selu"))
+models.add(Flatten())
+models.add(Dense(256, activation="selu"))
+models.add(Dense(3,activation="softmax"))
+
+epochs= 40
+lrate= 0.001
+models.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+print(models.summary())
+models.summary()
+
+# import datetime
+# Log_dir = "logs/fit/" + datetime.datetime.now().strftime("%m%d-%H%M%S")
+# Log_dir
+
+# callbacks = [
+# keras.callbacks.TensorBoard(Log_dir),
+# keras.callbacks.EarlyStopping(patience=5),
+# keras.callbacks.ModelCheckpoint("covid19_model_"+datetime.datetime.now().strftime("%m%d-%H%M%S")+".h5", save_best_only=True),
+
+# ]
+
+models.fit(X_train, y_train,epochs=epochs,validation_data=(X_train, y_train),batch_size=8,
+)
+
+models.save(filepath="Covidmodel")
